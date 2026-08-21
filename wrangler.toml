@@ -1,0 +1,8 @@
+name = "exam-02"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-21"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "exam-02-db"
+database_id = "350197d0-631c-4dbc-8764-30b605e7dc34"

@@ -1,55 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
-const STORAGE_KEY = 'board-posts'
-
-const seedPosts = [
-  {
-    id: 3,
-    title: 'React 19 새로운 기능 정리',
-    author: '김민준',
-    content:
-      'React 19에서 추가된 useActionState, useOptimistic 훅과 새로운 컴파일러에 대해 정리해봤습니다. 실무에 적용하면서 느낀 점도 함께 공유합니다.',
-    createdAt: '2026-08-20T09:30:00',
-    comments: [
-      {
-        id: 1001,
-        author: '이수민',
-        content: '정리 잘 봤습니다! useOptimistic 예제 코드도 궁금하네요.',
-        createdAt: '2026-08-20T10:05:00',
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: 'Vite로 개발 환경 세팅하기',
-    author: '이수민',
-    content:
-      'CRA 대신 Vite를 사용해서 개발 서버를 띄우니 HMR 속도가 체감될 정도로 빨라졌습니다. 설정 방법을 공유합니다.',
-    createdAt: '2026-08-19T15:10:00',
-    comments: [],
-  },
-  {
-    id: 1,
-    title: '게시판 프로젝트 시작합니다',
-    author: '관리자',
-    content: '오늘부터 이 게시판에서 자유롭게 글을 남겨주세요. 잘 부탁드립니다!',
-    createdAt: '2026-08-18T11:00:00',
-    comments: [
-      { id: 1002, author: '김민준', content: '잘 부탁드립니다!', createdAt: '2026-08-18T11:20:00' },
-    ],
-  },
-]
-
-function loadPosts() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch {
-    // ignore malformed storage and fall back to seed data
-  }
-  return seedPosts
-}
+const API_BASE = '/api/posts'
 
 function formatDate(iso) {
   const d = new Date(iso)
@@ -164,7 +116,7 @@ function CommentSection({ comments, onAdd, onDelete }) {
             <li key={c.id} className="comment-item">
               <div className="comment-body">
                 <span className="comment-author">{c.author}</span>
-                <span className="comment-date">{formatDate(c.createdAt)}</span>
+                <span className="comment-date">{formatDate(c.created_at)}</span>
                 <p className="comment-content">{c.content}</p>
               </div>
               <button
@@ -207,7 +159,7 @@ function PostRow({ post, isOpen, onToggle, onEdit, onDelete, onAddComment, onDel
         <span className="post-title">{post.title}</span>
         <span className="post-meta">
           <span className="post-author">{post.author}</span>
-          <span className="post-date">{formatDate(post.createdAt)}</span>
+          <span className="post-date">{formatDate(post.created_at)}</span>
         </span>
       </button>
 
@@ -234,37 +186,60 @@ function PostRow({ post, isOpen, onToggle, onEdit, onDelete, onAddComment, onDel
   )
 }
 
+async function apiRequest(url, options) {
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  })
+  if (!res.ok) throw new Error(`API request failed: ${res.status}`)
+  if (res.status === 204) return null
+  return res.json()
+}
+
 export default function App() {
-  const [posts, setPosts] = useState(loadPosts)
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [openId, setOpenId] = useState(null)
   const [formMode, setFormMode] = useState(null) // null | 'create' | post-object being edited
   const [deleteTarget, setDeleteTarget] = useState(null) // post being confirmed for deletion
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
-  }, [posts])
+    apiRequest(API_BASE)
+      .then(setPosts)
+      .catch(() => setError('게시글을 불러오지 못했습니다.'))
+      .finally(() => setLoading(false))
+  }, [])
 
-  const handleCreate = (data) => {
-    const newPost = { id: Date.now(), createdAt: new Date().toISOString(), ...data }
+  const handleCreate = async (data) => {
+    const newPost = await apiRequest(API_BASE, { method: 'POST', body: JSON.stringify(data) })
     setPosts((prev) => [newPost, ...prev])
     setFormMode(null)
   }
 
-  const handleUpdate = (data) => {
+  const handleUpdate = async (data) => {
+    const updated = await apiRequest(`${API_BASE}/${formMode.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
     setPosts((prev) =>
-      prev.map((p) => (p.id === formMode.id ? { ...p, ...data } : p)),
+      prev.map((p) => (p.id === formMode.id ? { ...p, ...updated } : p)),
     )
     setFormMode(null)
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
+    await apiRequest(`${API_BASE}/${deleteTarget.id}`, { method: 'DELETE' })
     setPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id))
     setOpenId((cur) => (cur === deleteTarget.id ? null : cur))
     setDeleteTarget(null)
   }
 
-  const handleAddComment = (postId, data) => {
-    const newComment = { id: Date.now(), createdAt: new Date().toISOString(), ...data }
+  const handleAddComment = async (postId, data) => {
+    const newComment = await apiRequest(`${API_BASE}/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
     setPosts((prev) =>
       prev.map((p) =>
         p.id === postId ? { ...p, comments: [...(p.comments ?? []), newComment] } : p,
@@ -272,7 +247,8 @@ export default function App() {
     )
   }
 
-  const handleDeleteComment = (postId, commentId) => {
+  const handleDeleteComment = async (postId, commentId) => {
+    await apiRequest(`${API_BASE}/${postId}/comments/${commentId}`, { method: 'DELETE' })
     setPosts((prev) =>
       prev.map((p) =>
         p.id === postId
@@ -294,7 +270,15 @@ export default function App() {
         </button>
       </header>
 
-      {posts.length === 0 ? (
+      {loading ? (
+        <div className="empty-state">
+          <p>불러오는 중...</p>
+        </div>
+      ) : error ? (
+        <div className="empty-state">
+          <p>{error}</p>
+        </div>
+      ) : posts.length === 0 ? (
         <div className="empty-state">
           <p>아직 작성된 글이 없습니다.</p>
         </div>

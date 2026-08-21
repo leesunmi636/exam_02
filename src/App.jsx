@@ -1,7 +1,18 @@
 import { useEffect, useState } from 'react'
-import './App.css'
 
 const API_BASE = '/api/posts'
+
+const btn =
+  'inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium transition active:scale-[0.97]'
+const btnPrimary = `${btn} bg-accent text-white hover:brightness-105`
+const btnGhost = `${btn} border border-neutral-200 text-neutral-900 hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-50 dark:hover:bg-neutral-900`
+const btnDanger = `${btn} border border-neutral-200 text-red-500 hover:border-red-300 hover:bg-red-50 dark:border-neutral-800 dark:hover:bg-red-950/30`
+const btnDangerSolid = `${btn} bg-red-500 text-white hover:brightness-105`
+const btnSm =
+  'rounded-lg px-3 py-1.5 text-xs'
+
+const fieldInput =
+  'rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/15 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-50'
 
 function formatDate(iso) {
   const d = new Date(iso)
@@ -26,17 +37,25 @@ function PostForm({ initial, onCancel, onSubmit }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    <div
+      className="fixed inset-0 z-10 flex items-center justify-center bg-black/45 p-5 backdrop-blur-sm"
+      onClick={onCancel}
+    >
       <form
-        className="modal"
+        className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-7 shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
       >
-        <h2>{initial ? '글 수정' : '새 글 작성'}</h2>
+        <h2 className="mb-5 font-heading text-xl font-medium text-neutral-900 dark:text-neutral-50">
+          {initial ? '글 수정' : '새 글 작성'}
+        </h2>
 
-        <label className="field">
-          <span>제목</span>
+        <label className="mb-4 block">
+          <span className="mb-1.5 block text-xs font-medium text-neutral-900 dark:text-neutral-50">
+            제목
+          </span>
           <input
+            className={`${fieldInput} w-full`}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목을 입력하세요"
@@ -44,18 +63,24 @@ function PostForm({ initial, onCancel, onSubmit }) {
           />
         </label>
 
-        <label className="field">
-          <span>작성자</span>
+        <label className="mb-4 block">
+          <span className="mb-1.5 block text-xs font-medium text-neutral-900 dark:text-neutral-50">
+            작성자
+          </span>
           <input
+            className={`${fieldInput} w-full`}
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
             placeholder="이름을 입력하세요"
           />
         </label>
 
-        <label className="field">
-          <span>내용</span>
+        <label className="mb-4 block">
+          <span className="mb-1.5 block text-xs font-medium text-neutral-900 dark:text-neutral-50">
+            내용
+          </span>
           <textarea
+            className={`${fieldInput} w-full resize-y`}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="내용을 입력하세요"
@@ -63,11 +88,11 @@ function PostForm({ initial, onCancel, onSubmit }) {
           />
         </label>
 
-        <div className="modal-actions">
-          <button type="button" className="btn btn-ghost" onClick={onCancel}>
+        <div className="mt-2 flex justify-end gap-2">
+          <button type="button" className={btnGhost} onClick={onCancel}>
             취소
           </button>
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className={btnPrimary}>
             {initial ? '수정 완료' : '등록'}
           </button>
         </div>
@@ -78,15 +103,23 @@ function PostForm({ initial, onCancel, onSubmit }) {
 
 function ConfirmDialog({ title, message, onCancel, onConfirm }) {
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal modal-confirm" onClick={(e) => e.stopPropagation()}>
-        <h2>{title}</h2>
-        <p className="confirm-message">{message}</p>
-        <div className="modal-actions">
-          <button type="button" className="btn btn-ghost" onClick={onCancel}>
+    <div
+      className="fixed inset-0 z-10 flex items-center justify-center bg-black/45 p-5 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-7 shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="mb-3 font-heading text-xl font-medium text-neutral-900 dark:text-neutral-50">
+          {title}
+        </h2>
+        <p className="mb-5 text-sm leading-relaxed text-neutral-500">{message}</p>
+        <div className="flex justify-end gap-2">
+          <button type="button" className={btnGhost} onClick={onCancel}>
             취소
           </button>
-          <button type="button" className="btn btn-danger-solid" onClick={onConfirm}>
+          <button type="button" className={btnDangerSolid} onClick={onConfirm}>
             삭제
           </button>
         </div>
@@ -107,20 +140,31 @@ function CommentSection({ comments, onAdd, onDelete }) {
   }
 
   return (
-    <div className="comment-section">
-      <h3 className="comment-heading">댓글 {comments.length}</h3>
+    <div className="mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+      <h3 className="mb-3 text-xs font-semibold text-neutral-900 dark:text-neutral-50">
+        댓글 {comments.length}
+      </h3>
 
       {comments.length > 0 && (
-        <ul className="comment-list">
+        <ul className="mb-3.5 flex flex-col gap-2.5">
           {comments.map((c) => (
-            <li key={c.id} className="comment-item">
-              <div className="comment-body">
-                <span className="comment-author">{c.author}</span>
-                <span className="comment-date">{formatDate(c.created_at)}</span>
-                <p className="comment-content">{c.content}</p>
+            <li
+              key={c.id}
+              className="flex items-start justify-between gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 dark:bg-neutral-900"
+            >
+              <div className="min-w-0">
+                <span className="text-xs font-semibold text-neutral-900 dark:text-neutral-50">
+                  {c.author}
+                </span>
+                <span className="ml-2 text-xs text-neutral-400">
+                  {formatDate(c.created_at)}
+                </span>
+                <p className="mt-1 text-sm break-words whitespace-pre-wrap text-neutral-700 dark:text-neutral-300">
+                  {c.content}
+                </p>
               </div>
               <button
-                className="comment-delete"
+                className="shrink-0 rounded-md px-1.5 py-0.5 text-lg leading-none text-neutral-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
                 onClick={() => onDelete(c.id)}
                 aria-label="댓글 삭제"
               >
@@ -131,20 +175,20 @@ function CommentSection({ comments, onAdd, onDelete }) {
         </ul>
       )}
 
-      <form className="comment-form" onSubmit={handleSubmit}>
+      <form className="flex gap-2" onSubmit={handleSubmit}>
         <input
-          className="comment-input comment-input-author"
+          className={`${fieldInput} w-24 shrink-0 px-2.5 py-2`}
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="이름"
         />
         <input
-          className="comment-input comment-input-content"
+          className={`${fieldInput} min-w-0 flex-1 px-2.5 py-2`}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="댓글을 입력하세요"
         />
-        <button type="submit" className="btn btn-primary btn-sm">
+        <button type="submit" className={`${btnPrimary} ${btnSm} shrink-0`}>
           등록
         </button>
       </form>
@@ -154,23 +198,36 @@ function CommentSection({ comments, onAdd, onDelete }) {
 
 function PostRow({ post, isOpen, onToggle, onEdit, onDelete, onAddComment, onDeleteComment }) {
   return (
-    <li className={`post-row ${isOpen ? 'open' : ''}`}>
-      <button className="post-summary" onClick={onToggle}>
-        <span className="post-title">{post.title}</span>
-        <span className="post-meta">
-          <span className="post-author">{post.author}</span>
-          <span className="post-date">{formatDate(post.created_at)}</span>
+    <li
+      className={`overflow-hidden rounded-2xl border transition ${
+        isOpen
+          ? 'border-accent/50 shadow-lg shadow-accent/5'
+          : 'border-neutral-200 hover:border-accent/50 dark:border-neutral-800'
+      }`}
+    >
+      <button
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+        onClick={onToggle}
+      >
+        <span className="truncate font-medium text-neutral-900 dark:text-neutral-50">
+          {post.title}
+        </span>
+        <span className="flex shrink-0 items-center gap-3 text-xs text-neutral-500">
+          <span className="font-medium">{post.author}</span>
+          <span>{formatDate(post.created_at)}</span>
         </span>
       </button>
 
       {isOpen && (
-        <div className="post-detail">
-          <p>{post.content}</p>
-          <div className="post-detail-actions">
-            <button className="btn btn-ghost btn-sm" onClick={onEdit}>
+        <div className="border-t border-neutral-200 px-5 pb-5 pt-4 dark:border-neutral-800">
+          <p className="text-sm leading-relaxed whitespace-pre-wrap text-neutral-700 dark:text-neutral-300">
+            {post.content}
+          </p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button className={`${btnGhost} ${btnSm}`} onClick={onEdit}>
               수정
             </button>
-            <button className="btn btn-danger btn-sm" onClick={onDelete}>
+            <button className={`${btnDanger} ${btnSm}`} onClick={onDelete}>
               삭제
             </button>
           </div>
@@ -259,31 +316,33 @@ export default function App() {
   }
 
   return (
-    <div className="board">
-      <header className="board-header">
+    <div className="mx-auto min-h-screen max-w-2xl px-6 py-12">
+      <header className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <h1 className="board-title">게시판</h1>
-          <p className="board-subtitle">{posts.length}개의 글이 있습니다</p>
+          <h1 className="font-heading text-3xl font-medium tracking-tight text-neutral-900 dark:text-neutral-50">
+            게시판
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500">{posts.length}개의 글이 있습니다</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setFormMode('create')}>
+        <button className={btnPrimary} onClick={() => setFormMode('create')}>
           + 글쓰기
         </button>
       </header>
 
       {loading ? (
-        <div className="empty-state">
+        <div className="rounded-2xl border border-dashed border-neutral-300 py-16 text-center text-neutral-500 dark:border-neutral-700">
           <p>불러오는 중...</p>
         </div>
       ) : error ? (
-        <div className="empty-state">
+        <div className="rounded-2xl border border-dashed border-neutral-300 py-16 text-center text-neutral-500 dark:border-neutral-700">
           <p>{error}</p>
         </div>
       ) : posts.length === 0 ? (
-        <div className="empty-state">
+        <div className="rounded-2xl border border-dashed border-neutral-300 py-16 text-center text-neutral-500 dark:border-neutral-700">
           <p>아직 작성된 글이 없습니다.</p>
         </div>
       ) : (
-        <ul className="post-list">
+        <ul className="flex flex-col gap-2.5">
           {posts.map((post) => (
             <PostRow
               key={post.id}

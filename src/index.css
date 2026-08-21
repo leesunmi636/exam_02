@@ -19,14 +19,13 @@
 @theme {
   --font-sans: 'JoseonGulim', system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Taenada', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --color-accent: #1c2b4a;
-  --color-accent-dark: #93a8d1;
-  --color-cream: #f3efe6;
+  --color-accent: #ec4899;
+  --color-accent-dark: #f9a8d4;
 }
 
 @layer base {
   body {
-    @apply bg-cream text-stone-600 antialiased dark:bg-neutral-950 dark:text-neutral-400;
+    @apply bg-white text-stone-600 antialiased dark:bg-neutral-950 dark:text-neutral-400;
     font-family: var(--font-sans);
   }
 }

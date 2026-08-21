@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const API_BASE = '/api/posts'
 
@@ -265,9 +265,54 @@ function SearchIcon() {
   )
 }
 
+function AccountIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M2.8 16c1-3 3.6-4.6 6.2-4.6s5.2 1.6 6.2 4.6"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function CartIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path
+        d="M2.5 4.5h1.8l1.4 8.4a1.5 1.5 0 0 0 1.5 1.3h5.9a1.5 1.5 0 0 0 1.48-1.24l1-5.66H5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="8" cy="16" r="1" fill="currentColor" />
+      <circle cx="13" cy="16" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+function ChevronIcon({ open }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden="true"
+      className={`transition-transform ${open ? 'rotate-180' : ''}`}
+    >
+      <path d="M3 5.5 7 9.5 11 5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 function SiteHeader({ searchOpen, onToggleSearch, query, onQueryChange }) {
   return (
-    <header className="sticky top-0 z-10 border-b border-stone-300/60 bg-cream/90 backdrop-blur dark:border-stone-800 dark:bg-neutral-950/90">
+    <header className="sticky top-0 z-10 border-b border-stone-200 bg-white/90 backdrop-blur dark:border-stone-800 dark:bg-neutral-950/90">
       <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
           <button className="text-stone-900 dark:text-stone-50" aria-label="메뉴">
@@ -277,13 +322,18 @@ function SiteHeader({ searchOpen, onToggleSearch, query, onQueryChange }) {
             게시판
           </span>
         </div>
-        <button
-          className="text-stone-900 dark:text-stone-50"
-          aria-label="검색"
-          onClick={onToggleSearch}
-        >
-          <SearchIcon />
-        </button>
+        <div className="flex items-center gap-4 text-stone-900 dark:text-stone-50">
+          <span aria-hidden="true">
+            <AccountIcon />
+          </span>
+          <span className="flex items-center gap-1" aria-hidden="true">
+            <CartIcon />
+            <span className="text-xs text-stone-500">(0)</span>
+          </span>
+          <button aria-label="검색" onClick={onToggleSearch}>
+            <SearchIcon />
+          </button>
+        </div>
       </div>
       {searchOpen && (
         <div className="mx-auto max-w-2xl px-6 pb-4">
@@ -297,6 +347,79 @@ function SiteHeader({ searchOpen, onToggleSearch, query, onQueryChange }) {
         </div>
       )}
     </header>
+  )
+}
+
+function SiteFooter({ guideOpen, onToggleGuide }) {
+  return (
+    <footer className="mt-16 border-t border-stone-200 pt-10 pb-24 text-xs text-stone-500 dark:border-stone-800">
+      <div className="mx-auto max-w-2xl px-6">
+        <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">게시판 안내</p>
+        <p className="mt-3 leading-relaxed">
+          자유롭게 글을 남기고 이야기를 나누는 커뮤니티 공간입니다. 서로를 배려하는 댓글 문화를
+          부탁드립니다.
+        </p>
+        <p className="mt-2">문의 : board@example.com</p>
+
+        <a
+          href="https://github.com/leesunmi636/exam_02"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex items-center gap-1.5 text-stone-500 hover:text-accent"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.35c-2.22.48-2.69-1.07-2.69-1.07-.36-.93-.89-1.17-.89-1.17-.72-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.71 1.23 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.11 0 0 .67-.22 2.2.82a7.5 7.5 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.91.08 2.11.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.14.46.55.38A8 8 0 0 0 8 0Z" />
+          </svg>
+          GitHub
+        </a>
+
+        <hr className="my-6 border-stone-200 dark:border-stone-800" />
+
+        <button
+          className="flex w-full items-center justify-between text-stone-900 dark:text-stone-50"
+          onClick={onToggleGuide}
+        >
+          <span className="text-sm font-semibold">이용안내</span>
+          <ChevronIcon open={guideOpen} />
+        </button>
+        {guideOpen && (
+          <div className="mt-3 space-y-1 leading-relaxed">
+            <p>· 광고성 게시물, 욕설, 비방은 사전 통보 없이 삭제될 수 있습니다.</p>
+            <p>· 개인정보(연락처, 주소 등)는 게시물에 남기지 말아주세요.</p>
+            <p>· 게시글 작성 시 작성자명은 실명이 아니어도 괜찮습니다.</p>
+          </div>
+        )}
+
+        <div className="mt-8 flex items-center justify-between border-t border-stone-200 pt-4 dark:border-stone-800">
+          <p>© 2026 게시판. All rights reserved.</p>
+          <span className="rounded bg-stone-900 px-2 py-1 text-[10px] font-bold text-white dark:bg-stone-100 dark:text-stone-900">
+            React
+          </span>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+function BottomQuickNav({ onGoList, onWrite, onGoTop }) {
+  const item = 'flex flex-1 flex-col items-center gap-1 py-3 text-[11px] font-medium text-stone-600 dark:text-stone-400'
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-stone-200 bg-white/95 backdrop-blur dark:border-stone-800 dark:bg-neutral-950/95">
+      <div className="mx-auto flex max-w-2xl">
+        <button className={item} onClick={onGoList}>
+          <HamburgerIcon />
+          목록
+        </button>
+        <button className={item} onClick={onWrite}>
+          <span className="text-base leading-none text-accent">+</span>
+          글쓰기
+        </button>
+        <button className={item} onClick={onGoTop}>
+          <ChevronIcon open />
+          맨 위로
+        </button>
+      </div>
+    </nav>
   )
 }
 
@@ -319,6 +442,8 @@ export default function App() {
   const [deleteTarget, setDeleteTarget] = useState(null) // post being confirmed for deletion
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [guideOpen, setGuideOpen] = useState(false)
+  const listRef = useRef(null)
 
   useEffect(() => {
     apiRequest(API_BASE)
@@ -386,7 +511,7 @@ export default function App() {
       />
 
       <div className="mx-auto max-w-2xl px-6 py-16">
-        <div className="mb-8 flex items-end justify-between gap-4">
+        <div ref={listRef} className="mb-8 flex items-end justify-between gap-4">
           <div>
             <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-accent uppercase dark:text-accent-dark">
               Community Board
@@ -451,6 +576,13 @@ export default function App() {
           />
         )}
       </div>
+
+      <SiteFooter guideOpen={guideOpen} onToggleGuide={() => setGuideOpen((v) => !v)} />
+      <BottomQuickNav
+        onGoList={() => listRef.current?.scrollIntoView({ behavior: 'smooth' })}
+        onWrite={() => setFormMode('create')}
+        onGoTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      />
     </div>
   )
 }

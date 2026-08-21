@@ -11,6 +11,14 @@ const seedPosts = [
     content:
       'React 19에서 추가된 useActionState, useOptimistic 훅과 새로운 컴파일러에 대해 정리해봤습니다. 실무에 적용하면서 느낀 점도 함께 공유합니다.',
     createdAt: '2026-08-20T09:30:00',
+    comments: [
+      {
+        id: 1001,
+        author: '이수민',
+        content: '정리 잘 봤습니다! useOptimistic 예제 코드도 궁금하네요.',
+        createdAt: '2026-08-20T10:05:00',
+      },
+    ],
   },
   {
     id: 2,
@@ -19,6 +27,7 @@ const seedPosts = [
     content:
       'CRA 대신 Vite를 사용해서 개발 서버를 띄우니 HMR 속도가 체감될 정도로 빨라졌습니다. 설정 방법을 공유합니다.',
     createdAt: '2026-08-19T15:10:00',
+    comments: [],
   },
   {
     id: 1,
@@ -26,6 +35,9 @@ const seedPosts = [
     author: '관리자',
     content: '오늘부터 이 게시판에서 자유롭게 글을 남겨주세요. 잘 부탁드립니다!',
     createdAt: '2026-08-18T11:00:00',
+    comments: [
+      { id: 1002, author: '김민준', content: '잘 부탁드립니다!', createdAt: '2026-08-18T11:20:00' },
+    ],
   },
 ]
 
@@ -131,7 +143,64 @@ function ConfirmDialog({ title, message, onCancel, onConfirm }) {
   )
 }
 
-function PostRow({ post, isOpen, onToggle, onEdit, onDelete }) {
+function CommentSection({ comments, onAdd, onDelete }) {
+  const [author, setAuthor] = useState('')
+  const [content, setContent] = useState('')
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!author.trim() || !content.trim()) return
+    onAdd({ author: author.trim(), content: content.trim() })
+    setContent('')
+  }
+
+  return (
+    <div className="comment-section">
+      <h3 className="comment-heading">댓글 {comments.length}</h3>
+
+      {comments.length > 0 && (
+        <ul className="comment-list">
+          {comments.map((c) => (
+            <li key={c.id} className="comment-item">
+              <div className="comment-body">
+                <span className="comment-author">{c.author}</span>
+                <span className="comment-date">{formatDate(c.createdAt)}</span>
+                <p className="comment-content">{c.content}</p>
+              </div>
+              <button
+                className="comment-delete"
+                onClick={() => onDelete(c.id)}
+                aria-label="댓글 삭제"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <form className="comment-form" onSubmit={handleSubmit}>
+        <input
+          className="comment-input comment-input-author"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+          placeholder="이름"
+        />
+        <input
+          className="comment-input comment-input-content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="댓글을 입력하세요"
+        />
+        <button type="submit" className="btn btn-primary btn-sm">
+          등록
+        </button>
+      </form>
+    </div>
+  )
+}
+
+function PostRow({ post, isOpen, onToggle, onEdit, onDelete, onAddComment, onDeleteComment }) {
   return (
     <li className={`post-row ${isOpen ? 'open' : ''}`}>
       <button className="post-summary" onClick={onToggle}>
@@ -153,6 +222,12 @@ function PostRow({ post, isOpen, onToggle, onEdit, onDelete }) {
               삭제
             </button>
           </div>
+
+          <CommentSection
+            comments={post.comments ?? []}
+            onAdd={onAddComment}
+            onDelete={onDeleteComment}
+          />
         </div>
       )}
     </li>
@@ -188,6 +263,25 @@ export default function App() {
     setDeleteTarget(null)
   }
 
+  const handleAddComment = (postId, data) => {
+    const newComment = { id: Date.now(), createdAt: new Date().toISOString(), ...data }
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, comments: [...(p.comments ?? []), newComment] } : p,
+      ),
+    )
+  }
+
+  const handleDeleteComment = (postId, commentId) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, comments: (p.comments ?? []).filter((c) => c.id !== commentId) }
+          : p,
+      ),
+    )
+  }
+
   return (
     <div className="board">
       <header className="board-header">
@@ -214,6 +308,8 @@ export default function App() {
               onToggle={() => setOpenId((cur) => (cur === post.id ? null : post.id))}
               onEdit={() => setFormMode(post)}
               onDelete={() => setDeleteTarget(post)}
+              onAddComment={(data) => handleAddComment(post.id, data)}
+              onDeleteComment={(commentId) => handleDeleteComment(post.id, commentId)}
             />
           ))}
         </ul>
